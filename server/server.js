@@ -93,14 +93,29 @@ createServer( (req, res) => {
     }else if( ( req.method == 'PATCH' || req.method == 'PUT') && req.url.match(/\/api\/students\/[0-9]{1,}/) ){
 
         let id = req.url.split('/')[3];
+        
 
         
         if(student_obj.some(stu => stu.id == id)){
+            // request data handle 
+            let data = '';
+            req.on('data', (chunk => {
+                data += chunk.toString()
+                // console.log(data);
+            }));
+            req.on('end', () => {
+                let {name, age, skill, location} = JSON.parse(data);
+                student_obj[student_obj.findIndex(stu => stu.id == id )] = {
+                     id : id,
+                     name : name,
+                     skill: skill,
+                     age : age,
+                     location : location
+                }
+                writeFileSync('./data/student.json', JSON.stringify(student_obj) );
+            })
+            // console.log(data); chunk data is not found outside on req.end()
 
-            student_obj[student_obj.findIndex(stu => stu.id == id )] = {
-                
-            }
-            // writeFileSync('./data/student.json', JSON.stringify(update_data) )
             res.writeHead('200', {"Content-Type" : 'application/json' });
             res.end(JSON.stringify({
                 mess : 'Student data Edited succssfully'
